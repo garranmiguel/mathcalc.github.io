@@ -1,0 +1,29 @@
+<!-- Save as templates/home.html -->
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<h1 style="text-align: center;">Miguel Ángel Garrán</h1>
+
+<div class="home-buttons">
+    <a href="/laplace" class="button home-button">
+        Laplace Transform Calculator
+    </a>
+    <a href="/inverse-laplace" class="button home-button">
+        Inverse Laplace Calculator
+    </a>
+</div>
+
+<div class="examples" style="margin-top: 40px;">
+    <h3>About Laplace Transforms</h3>
+    <p>The Laplace transform is a powerful tool in mathematics that converts a function of time (t) into a function of complex frequency (s). 
+       It's widely used in:</p>
+    <ul>
+        <li>Solving differential equations</li>
+        <li>Control systems analysis</li>
+        <li>Signal processing</li>
+        <li>Circuit analysis</li>
+    </ul>
+</div>
+{% endblock %}

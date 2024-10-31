@@ -1,0 +1,74 @@
+<!-- Save as templates/inverse_laplace.html -->
+{% extends "base.html" %}
+
+{% block title %}Inverse Laplace Transform{% endblock %}
+
+{% block content %}
+<h1>Inverse Laplace Transform Calculator</h1>
+<div class="input-group">
+    <p>Enter a function in terms of s. Use * for multiplication and ** for powers.</p>
+    <input type="text" id="input" placeholder="Example: 1/s**2" autofocus>
+    <button onclick="calculateResult()">Calculate</button>
+</div>
+<div id="result" class="result">
+    <!-- Results will appear here -->
+</div>
+
+<div class="examples">
+    <h3>Example inputs:</h3>
+    <ul>
+        <li><code>1/s**2</code> (results in t)</li>
+        <li><code>s/(s**2 + 1)</code> (results in cos(t))</li>
+        <li><code>1/(s**2 - 1)</code> (results in sinh(t))</li>
+        <li><code>s/(s**2 - 1)</code> (results in cosh(t))</li>
+        <li><code>1/(s**2 - 4)</code> (results in sinh(2t)/2)</li>
+        <li><code>s/(s**2 - 4)</code> (results in cosh(2t))</li>
+        <li><code>1/(s**2 + 4)</code> (results in sin(2t)/2)</li>
+    </ul>
+</div>
+
+<div class="examples">
+    <h3>Common Patterns:</h3>
+    <ul>
+        <li>Functions like 1/(s² - a²) typically result in hyperbolic sines</li>
+        <li>Functions like s/(s² - a²) typically result in hyperbolic cosines</li>
+        <li>Functions like 1/(s² + a²) result in regular trigonometric functions</li>
+    </ul>
+</div>
+
+<script>
+    async function calculateResult() {
+        const input = document.getElementById("input").value;
+        const resultDiv = document.getElementById("result");
+        
+        try {
+            const response = await fetch('/calculate_inverse_laplace', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ expression: input })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                resultDiv.innerHTML = `
+                    <p>Input: \\[F(s) = ${data.input}\\]</p>
+                    <p>Inverse Laplace Transform: \\[\\mathcal{L}^{-1}\\{F(s)\\} = f(t) = ${data.result}\\]</p>
+                `;
+                MathJax.typeset([resultDiv]);
+            } else {
+                resultDiv.innerHTML = `<p class="error">Error: ${data.error}</p>`;
+            }
+        } catch (error) {
+            resultDiv.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+        }
+    }
+
+    document.getElementById("input").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            calculateResult();
+        }
+    });
+</script>
+{% endblock %}

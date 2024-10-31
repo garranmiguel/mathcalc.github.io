@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}ODE Solver{% endblock %}
+{% block content %}
+
+<h1>Differential Equation Solver using Laplace Transforms</h1>
+
+<div class="input-group">
+    <label for="ode-input">Enter your differential equation (using x as the variable):</label>
+    <input type="text" id="ode-input" placeholder="dx + 4*x = (t**3)*exp(-4*t)" />
+    
+    <label for="y0-input">Initial condition x(0):</label>
+    <input type="text" id="y0-input" placeholder="0" />
+    
+    <label for="dy0-input">Initial condition x'(0):</label>
+    <input type="text" id="dy0-input" placeholder="0" />
+    
+    <button onclick="solveODE()" class="button">Solve ODE</button>
+</div>
+
+<div id="result" class="result"></div>
+
+<div class="examples">
+    <h3>Example equations:</h3>
+    <ul>
+        <li><code>dx + 4*x = (t**3)*exp(-4*t)</code> (First order with forcing term)</li>
+        <li><code>d2x + 4*dx + 4*x = 0</code> (Second order with constant coefficients)</li>
+        <li><code>d2x + 2*dx + x = t</code> (Non-homogeneous with polynomial term)</li>
+        <li><code>d2x + 4*x = sin(t)</code> (Non-homogeneous with trigonometric term)</li>
+    </ul>
+    
+    <h3>Input Format:</h3>
+    <ul>
+        <li>Use <code>d2x</code> for the second derivative (x'')</li>
+        <li>Use <code>dx</code> for the first derivative (x')</li>
+        <li>Use <code>x</code> for the function x(t)</li>
+        <li>Use <code>t</code> for the independent variable</li>
+        <li>Use <code>*</code> for multiplication and <code>**</code> for powers</li>
+        <li>You can write equations in the form "left side = right side"</li>
+    </ul>
+</div>
+
+<script>
+async function solveODE() {
+    const odeInput = document.getElementById('ode-input').value;
+    const y0Input = document.getElementById('y0-input').value;
+    const dy0Input = document.getElementById('dy0-input').value;
+    const resultDiv = document.getElementById('result');
+    
+    try {
+        const response = await fetch('/solve_ode', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                equation: odeInput,
+                y0: y0Input || null,
+                dy0: dy0Input || null
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            let html = '<div class="solution-steps">';
+            
+            // Display each step
+            data.steps.forEach(step => {
+                html += `
+                    <div class="step">
+                        <h4>${step.title}</h4>
+                        <p>${step.explanation}</p>
+                        ${step.input ? `<p>Input: \\[${step.input}\\]</p>` : ''}
+                        ${step.result ? `<p>Result: \\[${step.result}\\]</p>` : ''}
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            resultDiv.innerHTML = html;
+            
+            // Render LaTeX
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        } else {
+            resultDiv.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+        }
+    } catch (error) {
+        resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+    }
+}
+</script>
+
+{% endblock %}

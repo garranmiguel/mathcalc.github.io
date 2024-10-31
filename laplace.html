@@ -1,0 +1,63 @@
+<!-- Save as templates/laplace.html -->
+{% extends "base.html" %}
+
+{% block title %}Laplace Transform{% endblock %}
+
+{% block content %}
+<h1>Laplace Transform Calculator</h1>
+<div class="input-group">
+    <p>Enter a function in terms of t. Use * for multiplication and ** for powers.</p>
+    <input type="text" id="input" placeholder="Example: t**2" autofocus>
+    <button onclick="calculateResult()">Calculate</button>
+</div>
+<div id="result" class="result">
+    <!-- Results will appear here -->
+</div>
+
+<div class="examples">
+    <h3>Example inputs:</h3>
+    <ul>
+        <li><code>t**2</code> (t²)</li>
+        <li><code>sin(t)</code> (sine function)</li>
+        <li><code>exp(t)</code> (e^t)</li>
+        <li><code>t * exp(2*t)</code> (t·e^(2t))</li>
+        <li><code>t**3 + 2*t</code> (t³ + 2t)</li>
+    </ul>
+</div>
+
+<script>
+    async function calculateResult() {
+        const input = document.getElementById("input").value;
+        const resultDiv = document.getElementById("result");
+        
+        try {
+            const response = await fetch('/calculate_laplace', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ expression: input })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                resultDiv.innerHTML = `
+                    <p>Input: \\[${data.input}\\]</p>
+                    <p>Laplace Transform: \\[\\mathcal{L}\\{${data.input}\\} = ${data.result}\\]</p>
+                `;
+                MathJax.typeset([resultDiv]);
+            } else {
+                resultDiv.innerHTML = `<p class="error">Error: ${data.error}</p>`;
+            }
+        } catch (error) {
+            resultDiv.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+        }
+    }
+
+    document.getElementById("input").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            calculateResult();
+        }
+    });
+</script>
+{% endblock %}
